@@ -15,6 +15,6 @@ Transformer as a sequence to sequence model.
 
 2.Build nueral network model(Transformer).
 
-3.Train and evaluate, use BLUE.
+3.Train and evaluate, use BLEU.
 
 4.Upload my dataset and standard training model.
