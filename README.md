@@ -18,7 +18,7 @@ This is an interpreter which translate classical Chinese to modern Chinese.
 
 ### 训练阶段
 
-+ 使用准备好的数据，进行简单的预处理（后续介绍）；
++ 使用准备好的数据，进行简单的预处理；
 
 + 构建神经网络，使用Transformer神经网络，3层encoder和3层decoder，embedding维度256，feed_forward维度512，分成8头num_heads；
 
@@ -34,7 +34,7 @@ This is an interpreter which translate classical Chinese to modern Chinese.
 
 ## 数据集
 
-！！待更新！！
+[数据收集和预处理](data/README.md)
 
 ## 依赖
 
@@ -48,13 +48,11 @@ nltk
 
 ## 运行
 
-！！待更新！！
+```
+# 待更新
+python train.py
+```
 
 ## To Do
-1.Crawl data from web.
 
-2.Build nueral network model(Transformer).
-
-3.Train and evaluate, use BLEU.
-
-4.Upload my dataset and standard training model.
+> 注：目前正处在训练与调优阶段，预计将于9月10日前上传所有代码、数据和第一版模型
