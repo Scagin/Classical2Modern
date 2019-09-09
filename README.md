@@ -48,11 +48,27 @@ nltk
 
 ## 运行
 
+训练
+
 ```
-# 待更新
 python train.py
+```
+
+测试
+
+```
+python test.py
+```
+需要下载预训练模型[请点击](https://pan.baidu.com/s/1WGJ8G8w8BU7qzTZhiuFdsw)
+
+单条测试
+
+```
+python infer.py
 ```
 
 ## To Do
 
-> 注：目前正处在训练与调优阶段，预计将于9月10日前上传所有代码、数据和第一版模型
++ 模型调优
+
++ 计划将会开源数据集
