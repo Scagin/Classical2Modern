@@ -34,7 +34,7 @@ This is an interpreter which translate classical Chinese to modern Chinese.
 
 ## 数据集
 
-[数据收集和预处理](data/README.md)
+[数据收集和预处理](data)
 
 ## 依赖
 
