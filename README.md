@@ -36,6 +36,8 @@ This is an interpreter which translate classical Chinese to modern Chinese.
 
 [数据收集和预处理](data)
 
+> 从中挑选出部分人工整理数据，以开源，请前往[CCTC](https://github.com/Scagin/CCTC)
+
 ## 依赖
 
 ```
