@@ -6,12 +6,14 @@ Transformer network
 import tensorflow as tf
 
 from data_load import load_vocab
-from modules import get_token_embeddings, ff, positional_encoding, multihead_attention, label_smoothing, noam_scheme
+from modules import get_token_embeddings, ff, positional_encoding, multihead_attention, \
+    label_smoothing, noam_scheme
 from utils import convert_idx_to_token_tensor
 from tqdm import tqdm
 import logging
 
 logging.basicConfig(level=logging.INFO)
+
 
 class Transformer:
     '''
@@ -26,6 +28,7 @@ class Transformer:
         sents2: str tensor. (N,)
     training: boolean.
     '''
+
     def __init__(self, hp):
         self.hp = hp
         self.token2idx, self.idx2token = load_vocab(hp.vocab)
@@ -40,8 +43,8 @@ class Transformer:
             x, seqlens, sents1 = xs
 
             # embedding
-            enc = tf.nn.embedding_lookup(self.embeddings, x) # (N, T1, d_model)
-            enc *= self.hp.d_model**0.5 # scale
+            enc = tf.nn.embedding_lookup(self.embeddings, x)  # (N, T1, d_model)
+            enc *= self.hp.d_model ** 0.5  # scale
 
             enc += positional_encoding(enc, self.hp.maxlen1)
             enc = tf.layers.dropout(enc, self.hp.dropout_rate, training=training)
@@ -108,8 +111,8 @@ class Transformer:
                     dec = ff(dec, num_units=[self.hp.d_ff, self.hp.d_model])
 
         # Final linear projection (embedding weights are shared)
-        weights = tf.transpose(self.embeddings) # (d_model, vocab_size)
-        logits = tf.einsum('ntd,dk->ntk', dec, weights) # (N, T2, vocab_size)
+        weights = tf.transpose(self.embeddings)  # (d_model, vocab_size)
+        logits = tf.einsum('ntd,dk->ntk', dec, weights)  # (N, T2, vocab_size)
         y_hat = tf.to_int32(tf.argmax(logits, axis=-1))
 
         return logits, y_hat, y, sents2
@@ -167,7 +170,7 @@ class Transformer:
             ys = (_decoder_inputs, y, y_seqlen, sents2)
 
         # monitor a random sample
-        n = tf.random_uniform((), 0, tf.shape(y_hat)[0]-1, tf.int32)
+        n = tf.random_uniform((), 0, tf.shape(y_hat)[0] - 1, tf.int32)
         sent1 = sents1[n]
         pred = convert_idx_to_token_tensor(y_hat[n], self.idx2token)
         sent2 = sents2[n]
@@ -178,7 +181,6 @@ class Transformer:
         summaries = tf.summary.merge_all()
 
         return y_hat, summaries
-
 
     def infer(self, xs):
         decoder_inputs = tf.ones((1, 1), tf.int32) * self.token2idx["<s>"]
