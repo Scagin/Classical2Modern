@@ -1,64 +1,43 @@
 # -*- coding: utf-8 -*-
 # /usr/bin/python3
-'''
-Note.
-if safe, entities on the source side have the prefix 1, and the target side 2, for convenience.
-For example, fpath1, fpath2 means source file path and target file path, respectively.
-'''
+
 import tensorflow as tf
 from utils import calc_num_batches
 
 
-def load_vocab(vocab_fpath):
-    '''Loads vocabulary file and returns idx<->token maps
-    vocab_fpath: string. vocabulary file path.
-    Note that these are reserved
-    0: <pad>, 1: <unk>, 2: <s>, 3: </s>
-
-    Returns
-    two dictionaries.
-    '''
-    # vocab = [line.split()[0] for line in open(vocab_fpath, 'r', encoding='utf-8').read().splitlines()]
-    vocab = [line.strip() for line in open(vocab_fpath, 'r', encoding='utf-8').read().splitlines()
-             if line.strip()]
+def load_vocab(vocab_path):
+    """
+    Loads vocabulary file and returns idx<->token maps
+    """
+    with open(vocab_path, 'r', encoding='utf-8') as f:
+        vocab = [line.strip() for line in f.readlines() if line.strip()]
     token2idx = {token: idx for idx, token in enumerate(vocab)}
     idx2token = {idx: token for idx, token in enumerate(vocab)}
     return token2idx, idx2token
 
 
-def load_data(fpath1, fpath2, maxlen1, maxlen2):
-    '''Loads source and target data and filters out too lengthy samples.
-    fpath1: source file path. string.
-    fpath2: target file path. string.
-    maxlen1: source sent maximum length. scalar.
-    maxlen2: target sent maximum length. scalar.
-
-    Returns
-    sents1: list of source sents
-    sents2: list of target sents
-    '''
+def load_data(src_data_path, dst_data_path, maxlen_src, maxlen_dst):
+    """
+    Loads source and target data and filters out too lengthy samples.
+    """
     sents1, sents2 = [], []
-    with open(fpath1, 'r', encoding='utf-8') as f1, open(fpath2, 'r', encoding='utf-8') as f2:
+    with open(src_data_path, 'r', encoding='utf-8') as f1, \
+            open(dst_data_path, 'r', encoding='utf-8') as f2:
         for sent1, sent2 in zip(f1, f2):
-            if len(sent1.split()) + 1 > maxlen1: continue  # 1: </s>
-            if len(sent2.split()) + 1 > maxlen2: continue  # 1: </s>
+            if len(sent1.split()) + 1 > maxlen_src:
+                continue
+            if len(sent2.split()) + 1 > maxlen_dst:
+                continue
             sents1.append(sent1.strip())
             sents2.append(sent2.strip())
     return sents1, sents2
 
 
 def encode(inp, type, dict):
-    '''Converts string to number. Used for `generator_fn`.
-    inp: 1d byte array.
-    type: "x" (source side) or "y" (target side)
-    dict: token2idx dictionary
-
-    Returns
-    list of numbers
-    '''
+    """
+    Converts string to number. Used for `generator_fn`.
+    """
     inp_str = inp.decode("utf-8")
-    # if type=="x": tokens = inp_str.split() + ["</s>"]
-    # else: tokens = ["<s>"] + inp_str.split() + ["</s>"]
     if type == "x":
         tokens = [ch for ch in inp_str] + ["</s>"]
     else:
@@ -125,8 +104,7 @@ def input_fn(sents1, sents2, vocab_fpath, batch_size, shuffle=False):
         generator_fn,
         output_shapes=shapes,
         output_types=types,
-        args=(sents1, sents2,
-              vocab_fpath))  # <- arguments for generator_fn. converted to np string arrays
+        args=(sents1, sents2, vocab_fpath))  # <- arguments for generator_fn. converted to np string arrays
 
     if shuffle:  # for training
         dataset = dataset.shuffle(128 * batch_size)
