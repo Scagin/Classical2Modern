@@ -1,5 +1,10 @@
 # Classical2Modern
 
+![Travis building status](https://img.shields.io/travis/scagin/Classical2Modern/master)
+[![License](https://img.shields.io/github/license/scagin/Classical2Modern)](https://github.com/Scagin/Classical2Modern/blob/master/LICENSE)
+![Stars](https://img.shields.io/github/stars/scagin/Classical2Modern)
+![Forks](https://img.shields.io/github/forks/scagin/Classical2Modern)
+
 This is an interpreter which translate classical Chinese to modern Chinese.
 
 该项目是一个把文言文翻译成现代文的翻译器。
@@ -40,6 +45,16 @@ tqdm
 pip install -r reuirements.txt
 ```
 
+- 环境测试
+
+你可以通过简单的运行`main.py`来测试你的依赖配置是否已经安装完成
+
+```shell script
+python main.py --mode version
+```
+
+*注：只能检测是否安装完成，并不能检测版本是否匹配*
+
 - 数据准备
 
 ```
@@ -55,13 +70,14 @@ python data_scripts.py
 使用默认参数训练模型
 
 ```
-python train.py
+python main.py
 ```
 
 你也可以通过修改`hparams.py`文件或者添加运行参数的形式，调整训练的超参数配置
 
 ```
-python train.py --batch_size 128 \
+python main.py  --mode train
+                --batch_size 128 \
                 --lr 0.0001 \
                 --num_epochs 256 \
                 --d_model 512 \
@@ -78,13 +94,13 @@ python train.py --batch_size 128 \
 `--ckpt`为模型保存的文件夹路径
 
 ```
-python test.py --ckpt=checkpoints/v1.0.0
+python main.py  --mode test --ckpt=checkpoints/v1.0.0
 ```
 
 - 单条推理
 
 ```
-python infer.py --ckpt=checkpoints/v1.0.0
+python main.py  --mode infer --ckpt=checkpoints/v1.0.0
 ```
 
 ## 联系方式
