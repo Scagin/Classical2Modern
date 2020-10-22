@@ -1,6 +1,6 @@
 # Classical2Modern
 
-![Travis building status](https://img.shields.io/travis/scagin/Classical2Modern/dev)
+![Travis building status](https://img.shields.io/travis/scagin/Classical2Modern/master)
 [![License](https://img.shields.io/github/license/scagin/Classical2Modern)](https://github.com/Scagin/Classical2Modern/blob/master/LICENSE)
 ![Stars](https://img.shields.io/github/stars/scagin/Classical2Modern)
 ![Forks](https://img.shields.io/github/forks/scagin/Classical2Modern)
