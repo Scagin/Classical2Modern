@@ -3,6 +3,7 @@
 
 import logging
 import numpy as np
+from tqdm import tqdm
 import tensorflow as tf
 
 from data_load import load_vocab
@@ -44,8 +45,7 @@ class Transformer:
         # decoder
         self.logits = self.decode(self.decoder_input, self.encoder_hidden, training=self.is_training)
 
-        # predict
-        self.y_hat = tf.to_int32(tf.argmax(self.logits, axis=-1))
+        self.y_hat = tf.to_int32(tf.argmax(self.logits, axis=-1), name="y_predict_v2")
 
         # loss
         self.smoothing_y = label_smoothing(tf.one_hot(self.target, depth=self.hp.vocab_size))
@@ -64,6 +64,22 @@ class Transformer:
         tf.summary.scalar("loss", self.loss)
         tf.summary.scalar("global_step", self.global_step)
         self.summaries = tf.summary.merge_all()
+
+        # predict part
+        decoder_inputs = tf.ones((tf.shape(self.input_x)[0], 1), tf.int32) * self.token2idx["<s>"]
+        _decoder_inputs = tf.identity(decoder_inputs)
+
+        logging.info("Inference graph is being built. Please be patient.")
+        for _ in tqdm(range(self.hp.maxlen2)):
+            logits = self.decode(_decoder_inputs, self.encoder_hidden, False)
+            y_predict = tf.to_int32(tf.argmax(logits, axis=-1))
+            if tf.reduce_mean(y_predict[:, -1]) == self.token2idx["<pad>"] \
+                    or tf.reduce_mean(y_predict[:, -1]) == self.token2idx["</s>"]:
+                break
+
+            _decoder_inputs = tf.concat((decoder_inputs, y_predict), 1)
+
+        self.y_predict = tf.identity(y_predict, name="y_predict")
 
     def encode(self, x, training=True):
         '''
@@ -139,7 +155,7 @@ class Transformer:
 
         # Final linear projection (embedding weights are shared)
         weights = tf.transpose(self.embeddings)  # (d_model, vocab_size)
-        logits = tf.einsum('ntd,dk->ntk', dec, weights)  # (N, T2, vocab_size)
+        logits = tf.einsum('ntd,dk->ntk', dec, weights, name="logits")  # (N, T2, vocab_size)
 
         return logits
 
@@ -153,33 +169,24 @@ class Transformer:
         sess.run(eval_init_op)
         _input_x, sent1, sent2 = sess.run([xs[0], xs[-1], ys[-1]])
 
-        decoder_inputs = np.ones((_input_x.shape[0], 1), np.int32) * self.token2idx["<s>"]
-        _decoder_inputs = decoder_inputs
+        y_predict = sess.run(self.y_predict, feed_dict={self.input_x: _input_x, self.is_training: False})
 
-        for _ in range(self.hp.maxlen2):
-            y_hat = sess.run(self.y_hat, feed_dict={self.input_x: _input_x, self.decoder_input: _decoder_inputs,
-                                                    self.is_training: False})
-
-            if np.mean(y_hat[:, -1]) == self.token2idx["<pad>"]:
-                break
-
-            _decoder_inputs = np.concatenate((decoder_inputs, y_hat), 1)
-
-        # monitor a random sample
-        # n = tf.random_uniform((), 0, tf.shape(y_hat)[0] - 1, tf.int32)
-        # sent1 = src_sents[n]
-        # pred = convert_idx_to_token_tensor(y_hat[n], self.idx2token)
-        # sent2 = dst_sents[n]
-
-        return y_hat
+        return y_predict
 
     def infer(self, sess, input_token_ids):
+        y_predict = sess.run(self.y_predict, feed_dict={self.input_x: input_token_ids, self.is_training: False})
+
+        return y_predict
+
+    def infer_v2(self, sess, input_token_ids):
         decoder_inputs = np.ones((1, 1), np.int32) * self.token2idx["<s>"]
         _decoder_inputs = decoder_inputs
 
         for _ in range(self.hp.maxlen2):
-            y_hat = sess.run(self.y_hat, feed_dict={self.input_x: input_token_ids, self.decoder_input: _decoder_inputs,
-                                                    self.is_training: False})
+            _logits = sess.run(self.logits,
+                               feed_dict={self.input_x: input_token_ids, self.decoder_input: _decoder_inputs,
+                                          self.is_training: False})
+            y_hat = np.argmax(_logits, -1)
 
             if np.mean(y_hat[:, -1]) == self.token2idx["<pad>"]:
                 break
