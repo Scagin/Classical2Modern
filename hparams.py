@@ -1,8 +1,12 @@
+import logging
 import argparse
+from utils import load_hparams, save_hparams
 
 
 class Hparams:
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--mode', default='train', help="run mode.[train, test, infer, version]")
 
     ## vocabulary
     parser.add_argument('--vocab_size', default=16121, type=int)
@@ -41,3 +45,11 @@ class Hparams:
     parser.add_argument('--ckpt', help="checkpoint file path")
     parser.add_argument('--test_batch_size', default=128, type=int)
     parser.add_argument('--testdir', default="test/v1.0.0", help="test result dir")
+
+    def get_params(self):
+        hparams = Hparams()
+        parser = hparams.parser
+        hp = parser.parse_args()
+        logging.info("Hyper Params :")
+        logging.info("\n" + "\n".join(["{} = {}".format(key.rjust(20, " "), val) for key, val in hp._get_kwargs()]))
+        return hp
