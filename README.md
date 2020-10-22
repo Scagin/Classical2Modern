@@ -86,7 +86,7 @@ python src/main.py  --mode train \
                     --num_heads 8
 ```
 
-> 需要下载预训练模型[请点击](https://pan.baidu.com/s/1WGJ8G8w8BU7qzTZhiuFdsw)
+> 需要下载预训练模型[请点击](https://pan.baidu.com/s/1fjVMbSDtTqgWYVhBdiRBWQ) (提取码: nv7v)
 
 - 测试
 
@@ -116,10 +116,24 @@ python src/main.py --mode infer --ckpt=checkpoints/v1.0.0
 
 ### 指南
 
+你可以选择使用发布版本或源码编译的方式使用 `REST API` 服务
+
+- 发布版本
+
+已发布`v1.0.0`版本，仅支持`amd64`CPU 的 `linux`操作系统
+
+直接运行
+```
+cd api_server
+./classical2modern
+```
+
+- 源码编译
+
 你需要
 1. 提前安装好`tensorflow`的`Go`API 依赖
 
-2. 下载[预训练模型](https://pan.baidu.com/s/1WGJ8G8w8BU7qzTZhiuFdsw) 
+2. 下载[预训练模型](https://pan.baidu.com/s/1fjVMbSDtTqgWYVhBdiRBWQ) (提取码: nv7v) 
 
 3. 并执行`python src/main.py --mode export --ckpt v1.0.0`命令导出模型
 

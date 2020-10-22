@@ -102,7 +102,7 @@ def test(hp):
 
 
 def train(hp):
-    save_hparams(hp, hp.logdir)
+    save_hparams(hp, hp.checkpoints_dir)
     # Data generator
     logging.info("Prepare Train/Eval batches...")
     train_batches, num_train_batches, num_train_samples = get_batch(hp.train1, hp.train2, hp.maxlen1, hp.maxlen2,
@@ -128,15 +128,15 @@ def train(hp):
 
     with tf.Session() as sess:
         # Check & Load latest version model checkpoint
-        ckpt = tf.train.latest_checkpoint(hp.logdir)
+        ckpt = tf.train.latest_checkpoint(hp.checkpoints_dir)
         if ckpt is None:
             logging.info("Initializing from scratch")
             sess.run(tf.global_variables_initializer())
-            save_variable_specs(os.path.join(hp.logdir, "specs"))
+            save_variable_specs(os.path.join(hp.checkpoints_dir, "specs"))
         else:
             saver.restore(sess, ckpt)
 
-        summary_writer = tf.summary.FileWriter(hp.logdir, sess.graph)
+        summary_writer = tf.summary.FileWriter(hp.checkpoints_dir, sess.graph)
 
         sess.run(train_init_op)
         total_steps = hp.num_epochs * num_train_batches
@@ -177,7 +177,7 @@ def train(hp):
                 calc_bleu_nltk(hp.eval2, translation)
 
                 logging.info("# Save models")
-                ckpt_name = os.path.join(hp.logdir, model_output)
+                ckpt_name = os.path.join(hp.checkpoints_dir, model_output)
                 saver.save(sess, ckpt_name, global_step=_gs)
                 logging.info("After training of {} epochs, {} has been saved.".format(epoch, ckpt_name))
 
