@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 __version__ = "v1.1.0"
 
 
-def infer(hparams):
+def infer(hp):
     # Loading hyper params
     load_hparams(hp, hp.ckpt)
 
