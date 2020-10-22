@@ -1,12 +1,11 @@
 import logging
 import argparse
-from utils import load_hparams, save_hparams
 
 
 class Hparams:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', default='train', help="run mode.[train, test, infer, version]")
+    parser.add_argument('--mode', default='train', help="run mode. [train, test, infer, version, export]")
 
     ## vocabulary
     parser.add_argument('--vocab_size', default=16121, type=int)
@@ -25,7 +24,7 @@ class Hparams:
     parser.add_argument('--eval_batch_size', default=32, type=int)
     parser.add_argument('--lr', default=0.0003, type=float, help="learning rate")
     parser.add_argument('--warmup_steps', default=4000, type=int)
-    parser.add_argument('--logdir', default="log/2", help="log directory")
+    parser.add_argument('--checkpoints_dir', default="log/2", help="log directory")
     parser.add_argument('--num_epochs', default=100, type=int)
     parser.add_argument('--evaldir', default="eval/2", help="evaluation dir")
 
@@ -45,6 +44,9 @@ class Hparams:
     parser.add_argument('--ckpt', help="checkpoint file path")
     parser.add_argument('--test_batch_size', default=128, type=int)
     parser.add_argument('--testdir', default="test/v1.0.0", help="test result dir")
+
+    # export
+    parser.add_argument('--export_model_dir', default="mymodel", help="export model saving dir")
 
     def get_params(self):
         hparams = Hparams()

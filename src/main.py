@@ -10,7 +10,7 @@ import tensorflow as tf
 
 from hparams import Hparams
 from model import Transformer
-from data_load import get_batch
+from data_load import get_batch, load_vocab
 from utils import load_hparams, save_hparams, save_variable_specs, get_hypotheses, calc_bleu_nltk
 
 logging.basicConfig(level=logging.INFO)
@@ -18,28 +18,44 @@ __version__ = "v1.1.0"
 
 
 def infer(hp):
-    # Loading hyper params
     load_hparams(hp, hp.ckpt)
 
-    logging.info("# Load model")
-    model = Transformer(hp)
+    # latest checkpoint
+    ckpt_ = tf.train.latest_checkpoint(hp.ckpt)
+    ckpt = ckpt_ if ckpt_ else hp.ckpt
+
+    # load graph
+    saver = tf.train.import_meta_graph(ckpt + '.meta', clear_devices=True)
+    graph = tf.get_default_graph()
+
+    # load tensor
+    input_x = graph.get_tensor_by_name("input_x:0")
+    is_training = graph.get_tensor_by_name("is_training:0")
+    y_predict = graph.get_tensor_by_name("y_predict:0")
+
+    # vocabulary
+    token2idx, idx2token = load_vocab(hp.vocab)
 
     logging.info("# Session")
     with tf.Session() as sess:
-        ckpt_ = tf.train.latest_checkpoint(hp.ckpt)
-        ckpt = ckpt_ if ckpt_ else hp.ckpt  # None: ckpt is a file. otherwise dir.
-        saver = tf.train.Saver()
-
         saver.restore(sess, ckpt)
 
         while True:
             text = input("请输入测试样本：")
+
+            # tokens to ids
             tokens = [ch for ch in text] + ["</s>"]
-            x = [model.token2idx.get(t, model.token2idx["<unk>"]) for t in tokens]
-            predict = model.infer(sess, [x])
-            token_pred = [model.idx2token.get(t_id, "#") for t_id in predict[0]]
+            x = [token2idx.get(t, token2idx["<unk>"]) for t in tokens]
+
+            # run calculation
+            predict_result = sess.run(y_predict, feed_dict={input_x: [x], is_training: False})
+
+            # ids to tokens
+            token_pred = [idx2token.get(t_id, "#") for t_id in predict_result[0]]
             translation = "".join(token_pred).split("</s>")[0]
-            logging.info("  译文: " + translation)
+
+            logging.info("  译文: {}".format(translation))
+
             time.sleep(0.1)
 
 
@@ -49,7 +65,7 @@ def test(hp):
 
     logging.info("# Prepare test batches")
     test_batches, num_test_batches, num_test_samples = get_batch(hp.test1, hp.test1,
-                                                                 hp.maxlen1, hp.maxlen2,
+                                                                 100000, 100000,
                                                                  hp.vocab, hp.test_batch_size,
                                                                  shuffle=False)
     iter = tf.data.Iterator.from_structure(test_batches.output_types, test_batches.output_shapes)
@@ -172,12 +188,43 @@ def train(hp):
     logging.info("Done")
 
 
+def export_model(hp):
+    """
+    export model checkpoint to pb file
+    """
+    load_hparams(hp, hp.ckpt)
+
+    ckpt_ = tf.train.latest_checkpoint(hp.ckpt)
+    ckpt = ckpt_ if ckpt_ else hp.ckpt
+
+    saver = tf.train.import_meta_graph(ckpt + '.meta', clear_devices=True)
+    graph = tf.get_default_graph()
+
+    input_x = graph.get_tensor_by_name("input_x:0")
+    decoder_input = graph.get_tensor_by_name("decoder_input:0")
+    is_training = graph.get_tensor_by_name("is_training:0")
+    y_predict = graph.get_tensor_by_name("y_predict:0")
+
+    with tf.Session() as sess:
+        saver.restore(sess, ckpt)  # restore graph
+
+        builder = tf.saved_model.builder.SavedModelBuilder(hp.export_model_dir)
+        inputs = {'input': tf.saved_model.utils.build_tensor_info(input_x),
+                  'decoder_input': tf.saved_model.utils.build_tensor_info(decoder_input),
+                  'is_training': tf.saved_model.utils.build_tensor_info(is_training)}
+        outputs = {'y_predict': tf.saved_model.utils.build_tensor_info(y_predict)}
+
+        signature = tf.saved_model.signature_def_utils.build_signature_def(inputs, outputs, 'signature')
+        builder.add_meta_graph_and_variables(sess, ['classical2modern'], {'signature': signature})
+        builder.save()
+
+
 def _check_version(hp=None):
     logging.info("Hello! This is Classical2Modern. You are now using the application version {}".format(__version__))
 
 
 if __name__ == '__main__':
-    mode_func = {"train": train, "test": test, "infer": infer, "version": _check_version}
+    mode_func = {"train": train, "test": test, "infer": infer, "version": _check_version, "export": export_model}
 
     hparams = Hparams()
     hp = hparams.get_params()
@@ -188,4 +235,5 @@ if __name__ == '__main__':
     if func:
         func(hp)
     else:
-        logging.error("Sorry, you set a wrong mode not in [train, test, infer, version]. Check you arguments please.")
+        logging.error("Sorry, you set a wrong mode not in [train, test, infer, version, export]. "
+                      "Check you arguments please.")

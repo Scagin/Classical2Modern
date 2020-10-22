@@ -7,4 +7,4 @@ install:
   - python -m pip install --upgrade pip
   - pip install -r requirements.txt
 
-script: python main.py --mode version
+script: python src/main.py --mode version

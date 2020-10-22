@@ -70,21 +70,20 @@ python data_scripts.py
 使用默认参数训练模型
 
 ```
-python main.py
+python src/main.py
 ```
 
 你也可以通过修改`hparams.py`文件或者添加运行参数的形式，调整训练的超参数配置
 
 ```
-python main.py  --mode train
-                --batch_size 128 \
-                --lr 0.0001 \
-                --num_epochs 256 \
-                --d_model 512 \
-                --d_ff 2048 \
-                --num_blocks 6 \
-                --num_heads 8
-
+python src/main.py  --mode train \
+                    --batch_size 128 \
+                    --lr 0.0001 \
+                    --num_epochs 256 \
+                    --d_model 512 \
+                    --d_ff 2048 \
+                    --num_blocks 6 \
+                    --num_heads 8
 ```
 
 > 需要下载预训练模型[请点击](https://pan.baidu.com/s/1WGJ8G8w8BU7qzTZhiuFdsw)
@@ -94,14 +93,47 @@ python main.py  --mode train
 `--ckpt`为模型保存的文件夹路径
 
 ```
-python main.py  --mode test --ckpt=checkpoints/v1.0.0
+python src/main.py --mode test --ckpt=checkpoints/v1.0.0
 ```
 
 - 单条推理
 
 ```
-python main.py  --mode infer --ckpt=checkpoints/v1.0.0
+python src/main.py --mode infer --ckpt=checkpoints/v1.0.0
 ```
+
+## 实验功能
+
+### 作者心声
+
+把古文翻译模型部署成`REST API`服务。
+
+考虑到可能存在高并发请求的场景，能很好地处理这种场景，并且开发难度也不大的语言，选用`GO`
+
+恰好本项目采用`tensorflow`作为框架，又恰好`tensorflow`提供了`Go`语言的`api`接口
+
+因此选择了使用`Go`开发`REST API`服务端程序
+
+### 指南
+
+你需要
+1. 提前安装好`tensorflow`的`Go`API 依赖
+
+2. 下载[预训练模型](https://pan.baidu.com/s/1WGJ8G8w8BU7qzTZhiuFdsw) 
+
+3. 并执行`python src/main.py --mode export --ckpt v1.0.0`命令导出模型
+
+4. 然后从源码开始编译，运行
+
+```
+cd api_server
+
+go build .
+
+./classical2modern
+```
+
+> ***实验室功能，不建议在生产环境使用，一切声明均在[开源协议](./LICENSE)中***
 
 ## 联系方式
 
