@@ -159,7 +159,7 @@ class Transformer:
 
         return logits
 
-    def eval(self, sess, eval_init_op, xs, ys):
+    def eval(self, sess, eval_init_op, xs, ys, num_batches):
         '''Predicts autoregressively
         At inference, input ys is ignored.
         Returns
@@ -167,11 +167,18 @@ class Transformer:
         '''
         logging.info("# test evaluation")
         sess.run(eval_init_op)
-        _input_x, sent1, sent2 = sess.run([xs[0], xs[-1], ys[-1]])
+        result = None
+        for _ in range(num_batches):
+            _input_x, sent1, sent2 = sess.run([xs[0], xs[-1], ys[-1]])
 
-        y_predict = sess.run(self.y_predict, feed_dict={self.input_x: _input_x, self.is_training: False})
+            y_hat = sess.run(self.y_predict, feed_dict={self.input_x: _input_x, self.is_training: False})
 
-        return y_predict
+            if result is not None:
+                result = np.concatenate([result, y_hat], axis=0)
+            else:
+                result = y_hat
+
+        return result
 
     def infer(self, sess, input_token_ids):
         y_predict = sess.run(self.y_predict, feed_dict={self.input_x: input_token_ids, self.is_training: False})

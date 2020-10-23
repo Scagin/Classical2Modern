@@ -24,9 +24,9 @@ def load_data(src_data_path, dst_data_path, maxlen_src, maxlen_dst):
     with open(src_data_path, 'r', encoding='utf-8') as f1, \
             open(dst_data_path, 'r', encoding='utf-8') as f2:
         for sent1, sent2 in zip(f1, f2):
-            if len(sent1.split()) + 1 > maxlen_src:
+            if len(sent1.strip()) + 1 >= maxlen_src:
                 continue
-            if len(sent2.split()) + 1 > maxlen_dst:
+            if len(sent2.strip()) + 1 >= maxlen_dst:
                 continue
             sents1.append(sent1.strip())
             sents2.append(sent2.strip())

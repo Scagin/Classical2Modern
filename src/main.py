@@ -107,7 +107,7 @@ def train(hp):
     logging.info("Prepare Train/Eval batches...")
     train_batches, num_train_batches, num_train_samples = get_batch(hp.train1, hp.train2, hp.maxlen1, hp.maxlen2,
                                                                     hp.vocab, hp.batch_size, shuffle=True)
-    eval_batches, num_eval_batches, num_eval_samples = get_batch(hp.eval1, hp.eval2, 100000, 100000,
+    eval_batches, num_eval_batches, num_eval_samples = get_batch(hp.eval1, hp.eval2, 10000, 10000,
                                                                  hp.vocab, hp.batch_size, shuffle=False)
 
     # Batch iterator
@@ -152,13 +152,13 @@ def train(hp):
             summary_writer.add_summary(_summary, _gs)
 
             # Evaluation
-            if _gs and _gs % num_train_batches == 0:
+            if _gs and _gs % (num_train_batches * 3) == 0:
                 logging.info("Epoch {} is done".format(epoch))
                 _loss = sess.run(model.loss,
                                  feed_dict={model.input_x: _input_x, model.decoder_input: _decoder_input,
                                             model.target: _target, model.is_training: False})
 
-                y_hat = model.eval(sess, eval_init_op, xs, ys)
+                y_hat = model.eval(sess, eval_init_op, xs, ys, num_eval_batches)
 
                 # id to token
                 logging.info("# Get hypotheses")

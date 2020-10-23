@@ -78,9 +78,10 @@ def save_variable_specs(fpath):
 
 def get_hypotheses(num_batches, num_samples, predict, dict):
     hypotheses = []
-    for _ in range(num_batches):
-        hypotheses.extend(predict.tolist())
-    hypotheses = postprocess(hypotheses, dict)
+    # for _ in range(num_batches):
+    #     hypotheses.extend(predict.tolist())
+    # hypotheses = postprocess(hypotheses, dict)
+    hypotheses = postprocess(predict.tolist(), dict)
     return hypotheses[:num_samples]
 
 
@@ -91,8 +92,10 @@ def calc_bleu_nltk(ref, translation):
 
     Returns
     translation that the bleu score is appended to'''
-    ref_lines = [[jieba.lcut(line.strip())] for line in open(ref, encoding="utf-8") if line.strip()]
-    trans_lines = [jieba.lcut(line.strip()) for line in open(translation, encoding="utf-8") if line.strip()]
+    # ref_lines = [[jieba.lcut(line.strip())] for line in open(ref, encoding="utf-8") if line.strip()]
+    # trans_lines = [jieba.lcut(line.strip()) for line in open(translation, encoding="utf-8") if line.strip()]
+    ref_lines = [[jieba.lcut(line.strip())] for line in open(ref, encoding="utf-8")]
+    trans_lines = [jieba.lcut(line.strip()) for line in open(translation, encoding="utf-8")]
     bleu_score_report = corpus_bleu(ref_lines, trans_lines)
     with open(translation, "a") as fout:
         fout.write("\n{}".format(bleu_score_report))
