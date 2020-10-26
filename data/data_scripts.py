@@ -14,7 +14,7 @@ source_sentences = []
 target_sentences = []
 
 for file in files:
-    if not os.path.isdir(file):
+    if not os.path.isdir(file) or file == "static":
         continue
 
     jsonfile_list = os.listdir(os.path.join(args.datadir, file))
@@ -37,21 +37,21 @@ indices = np.arange(datas_length)
 random_ind = np.random.permutation(indices)
 source_sentences = np.array(source_sentences)[random_ind].tolist()
 target_sentences = np.array(target_sentences)[random_ind].tolist()
-train_source, dev_source, test_source = source_sentences[:-2000], source_sentences[-2000: -1000], source_sentences[-1000:]
-train_target, dev_target, test_target = target_sentences[:-2000], target_sentences[-2000: -1000], target_sentences[-1000:]
+train_source, dev_source, test_source = source_sentences[:-1000], source_sentences[-1000:], source_sentences[-1000:]
+train_target, dev_target, test_target = target_sentences[:-1000], target_sentences[-1000:], target_sentences[-1000:]
 
-with open("train_sample.src", "w", encoding="utf-8") as src_f, \
-    open("train_sample.dst", "w", encoding="utf-8") as dst_f:
+with open("train.src", "w", encoding="utf-8") as src_f, \
+    open("train.dst", "w", encoding="utf-8") as dst_f:
     src_f.write("\n".join(train_source))
     dst_f.write("\n".join(train_target))
 
-with open("eval_sample.src", "w", encoding="utf-8") as src_f, \
-    open("eval_sample.dst", "w", encoding="utf-8") as dst_f:
+with open("eval.src", "w", encoding="utf-8") as src_f, \
+    open("eval.dst", "w", encoding="utf-8") as dst_f:
     src_f.write("\n".join(dev_source))
     dst_f.write("\n".join(dev_target))
 
-with open("test_sample.src", "w", encoding="utf-8") as src_f, \
-    open("test_sample.dst", "w", encoding="utf-8") as dst_f:
+with open("test.src", "w", encoding="utf-8") as src_f, \
+    open("test.dst", "w", encoding="utf-8") as dst_f:
     src_f.write("\n".join(test_source))
     dst_f.write("\n".join(test_target))
 

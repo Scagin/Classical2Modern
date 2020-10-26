@@ -5,6 +5,7 @@ import os
 import json
 import jieba
 import logging
+import numpy as np
 import tensorflow as tf
 from nltk.translate.bleu_score import corpus_bleu
 
@@ -76,11 +77,8 @@ def save_variable_specs(fpath):
     logging.info("Variables info has been saved.")
 
 
-def get_hypotheses(num_batches, num_samples, predict, dict):
-    hypotheses = []
-    for _ in range(num_batches):
-        hypotheses.extend(predict.tolist())
-    hypotheses = postprocess(hypotheses, dict)
+def get_hypotheses(num_samples, predict, dict):
+    hypotheses = postprocess(predict.tolist(), dict)
     return hypotheses[:num_samples]
 
 
@@ -91,8 +89,20 @@ def calc_bleu_nltk(ref, translation):
 
     Returns
     translation that the bleu score is appended to'''
-    ref_lines = [[jieba.lcut(line.strip())] for line in open(ref, encoding="utf-8") if line.strip()]
-    trans_lines = [jieba.lcut(line.strip()) for line in open(translation, encoding="utf-8") if line.strip()]
+    ref_lines = [[jieba.lcut(line.strip())] for line in open(ref, encoding="utf-8")]
+    trans_lines = [jieba.lcut(line.strip()) for line in open(translation, encoding="utf-8")]
     bleu_score_report = corpus_bleu(ref_lines, trans_lines)
     with open(translation, "a") as fout:
-        fout.write("\n{}".format(bleu_score_report))
+        fout.write("\n{}\n".format(bleu_score_report))
+
+
+def calculate_earlystop_baseline(loss, min_loss, loss_list, latest_k):
+    gl = 100 * (loss / min_loss - 1)
+
+    losses = loss_list[-latest_k:]
+    count = len(loss_list) if len(loss_list) < latest_k else latest_k
+    p_k = 1000 * (np.sum(losses) / (count * np.min(losses)) - 1)
+    pq_alpha = p_k / gl
+
+    return gl, p_k, pq_alpha
+

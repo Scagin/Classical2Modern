@@ -66,20 +66,7 @@ class Transformer:
         self.summaries = tf.summary.merge_all()
 
         # predict part
-        decoder_inputs = tf.ones((tf.shape(self.input_x)[0], 1), tf.int32) * self.token2idx["<s>"]
-        _decoder_inputs = tf.identity(decoder_inputs)
-
-        logging.info("Inference graph is being built. Please be patient.")
-        for _ in tqdm(range(self.hp.maxlen2)):
-            logits = self.decode(_decoder_inputs, self.encoder_hidden, False)
-            y_predict = tf.to_int32(tf.argmax(logits, axis=-1))
-            if tf.reduce_mean(y_predict[:, -1]) == self.token2idx["<pad>"] \
-                    or tf.reduce_mean(y_predict[:, -1]) == self.token2idx["</s>"]:
-                break
-
-            _decoder_inputs = tf.concat((decoder_inputs, y_predict), 1)
-
-        self.y_predict = tf.identity(y_predict, name="y_predict")
+        self.y_predict = tf.identity(self.greedy_search(), name="y_predict")
 
     def encode(self, x, training=True):
         '''
@@ -159,7 +146,26 @@ class Transformer:
 
         return logits
 
-    def eval(self, sess, eval_init_op, xs, ys):
+    def greedy_search(self):
+        decoder_inputs = tf.ones((tf.shape(self.input_x)[0], 1), tf.int32) * self.token2idx["<s>"]
+        _decoder_inputs = tf.identity(decoder_inputs)
+
+        logging.info("Inference graph is being built. Please be patient.")
+        for _ in tqdm(range(self.hp.maxlen2)):
+            logits = self.decode(_decoder_inputs, self.encoder_hidden, False)
+            y_predict = tf.to_int32(tf.argmax(logits, axis=-1))
+            if tf.reduce_mean(y_predict[:, -1]) == self.token2idx["<pad>"] \
+                    or tf.reduce_mean(y_predict[:, -1]) == self.token2idx["</s>"]:
+                break
+
+            _decoder_inputs = tf.concat((decoder_inputs, y_predict), 1)
+        return y_predict
+
+    def beam_search(self):
+        # TODO
+        pass
+
+    def eval(self, sess, eval_init_op, xs, ys, num_batches):
         '''Predicts autoregressively
         At inference, input ys is ignored.
         Returns
@@ -167,11 +173,21 @@ class Transformer:
         '''
         logging.info("# test evaluation")
         sess.run(eval_init_op)
-        _input_x, sent1, sent2 = sess.run([xs[0], xs[-1], ys[-1]])
+        result = None
+        losses = []
+        for _ in range(num_batches):
+            _input_x, sent1, _decode_in, _tgt, sent2 = sess.run([xs[0], xs[-1], ys[0], ys[1], ys[-1]])
 
-        y_predict = sess.run(self.y_predict, feed_dict={self.input_x: _input_x, self.is_training: False})
+            _loss, y_hat = sess.run([self.loss, self.y_predict],
+                                    feed_dict={self.input_x: _input_x, self.decoder_input: _decode_in,
+                                               self.target: _tgt, self.is_training: False})
+            losses.append(_loss)
+            if result is not None:
+                result = np.concatenate([result, y_hat], axis=0)
+            else:
+                result = y_hat
 
-        return y_predict
+        return result, np.mean(losses)
 
     def infer(self, sess, input_token_ids):
         y_predict = sess.run(self.y_predict, feed_dict={self.input_x: input_token_ids, self.is_training: False})
