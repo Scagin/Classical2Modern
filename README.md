@@ -110,7 +110,7 @@ python src/main.py --mode test --ckpt=checkpoints/v1.1.0
 
 下载编译后的 `zip` 文件，可以在指定平台中直接运行
 
-v1.1版本：[下载](https://github.com/Scagin/Classical2Modern/releases/download/v1.1.0/release_v1.1.0.zip)
+v1.1版本：[下载](https://github.com/Scagin/Classical2Modern/releases/download/v1.1.0/Classical2Modern_release_1.1.0.zip)
 
 #### 发布版本
 
@@ -154,7 +154,7 @@ tail -f logs/api_server.log
 
 2. 安装好`tensorflow`的 `C` 和 `Go` API 依赖
 
-3. 下载[预训练模型](https://pan.baidu.com/s/1fjVMbSDtTqgWYVhBdiRBWQ) (提取码: nv7v) 
+3. 下载[预训练模型](https://pan.baidu.com/s/1eGal2InFkCkP7Jdqd3KY3Q) (提取码: 4vhj)
 
 4. 并执行`python src/main.py --mode export --ckpt v1.0.0`命令导出模型
 
