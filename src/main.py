@@ -11,7 +11,8 @@ import tensorflow as tf
 from hparams import Hparams
 from model import Transformer
 from data_load import get_batch, load_vocab
-from utils import load_hparams, save_hparams, save_variable_specs, get_hypotheses, calc_bleu_nltk
+from utils import load_hparams, save_hparams, save_variable_specs, \
+    get_hypotheses, calc_bleu_nltk, calculate_earlystop_baseline
 
 logging.basicConfig(level=logging.INFO)
 __version__ = "v1.1.0"
@@ -84,10 +85,10 @@ def test(hp):
 
         saver.restore(sess, ckpt)
 
-        y_hat = model.eval(sess, test_init_op, xs, ys)
+        y_hat, mean_loss = model.eval(sess, test_init_op, xs, ys, num_test_batches)
 
         logging.info("# get hypotheses")
-        hypotheses = get_hypotheses(num_test_batches, num_test_samples, y_hat, model.idx2token)
+        hypotheses = get_hypotheses(num_test_samples, y_hat, model.idx2token)
 
         logging.info("# write results")
         model_output = os.path.split(ckpt)[-1]
@@ -142,6 +143,9 @@ def train(hp):
         total_steps = hp.num_epochs * num_train_batches
         _gs = sess.run(model.global_step)
 
+        k = 5
+        stop_alpha = 20.0
+        eval_losses = []
         # Start training
         for i in tqdm(range(_gs, total_steps + 1)):
             _input_x, _decoder_input, _target = sess.run([xs[0], ys[0], ys[1]])
@@ -152,35 +156,51 @@ def train(hp):
             summary_writer.add_summary(_summary, _gs)
 
             # Evaluation
-            if _gs and _gs % (num_train_batches * 3) == 0:
+            if _gs and _gs % (num_train_batches * 10) == 0:
                 logging.info("Epoch {} is done".format(epoch))
                 _loss = sess.run(model.loss,
                                  feed_dict={model.input_x: _input_x, model.decoder_input: _decoder_input,
                                             model.target: _target, model.is_training: False})
 
-                y_hat = model.eval(sess, eval_init_op, xs, ys, num_eval_batches)
+                # evaluation
+                y_hat, mean_loss = model.eval(sess, eval_init_op, xs, ys, num_eval_batches)
 
                 # id to token
                 logging.info("# Get hypotheses")
-                hypotheses = get_hypotheses(num_eval_batches, num_eval_samples, y_hat, model.idx2token)
+                hypotheses = get_hypotheses(num_eval_samples, y_hat, model.idx2token)
 
+                # save translation results
                 if not os.path.exists(hp.evaldir):
                     os.makedirs(hp.evaldir)
                 logging.info("# Write results")
-                model_output = "translation_E{:2d}L{:.2f}".format(epoch, _loss)
+                model_output = "translation_E{:02d}L{:.2f}EL{:.2f}".format(epoch, _loss, mean_loss)
                 translation = os.path.join(hp.evaldir, model_output)
                 with open(translation, 'w', encoding="utf-8") as fout:
                     fout.write("\n".join(hypotheses))
-
                 logging.info("# Calculate bleu score and append it to translation")
 
+                # bleu
                 calc_bleu_nltk(hp.eval2, translation)
 
+                # save model
                 logging.info("# Save models")
                 ckpt_name = os.path.join(hp.checkpoints_dir, model_output)
                 saver.save(sess, ckpt_name, global_step=_gs)
                 logging.info("After training of {} epochs, {} has been saved.".format(epoch, ckpt_name))
 
+                # claculate early stop
+                eval_losses.append(mean_loss)
+                if len(eval_losses) == 0:
+                    min_dev_loss = mean_loss
+                gl, p_k, pq_alpha = calculate_earlystop_baseline(mean_loss, min_dev_loss, losses, k)
+                min_dev_loss = mean_loss if mean_loss < min_dev_loss else min_dev_loss
+                losses = losses[-k:]
+                logging.info("GL(t): {:.4f}, P_k: {:.4f}, PQ_alpha: {:.4f}".format(gl, p_k, pq_alpha))
+                if gl > stop_alpha:
+                    logging.info("No optimization for a long time, auto-stopping...")
+                    break
+
+                # change data iterator back to train iterator
                 sess.run(train_init_op)
 
         summary_writer.close()

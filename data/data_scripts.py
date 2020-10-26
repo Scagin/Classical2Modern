@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--datadir', default='.', help="raw dataset directory")
+parser.add_argument('--datadir', default='./CCTC', help="raw dataset directory")
 args = parser.parse_args()
 
 files = os.listdir(args.datadir)
@@ -37,8 +37,8 @@ indices = np.arange(datas_length)
 random_ind = np.random.permutation(indices)
 source_sentences = np.array(source_sentences)[random_ind].tolist()
 target_sentences = np.array(target_sentences)[random_ind].tolist()
-train_source, dev_source, test_source = source_sentences[:-2000], source_sentences[-2000: -1000], source_sentences[-1000:]
-train_target, dev_target, test_target = target_sentences[:-2000], target_sentences[-2000: -1000], target_sentences[-1000:]
+train_source, dev_source, test_source = source_sentences[:-1000], source_sentences[-1000:], source_sentences[-1000:]
+train_target, dev_target, test_target = target_sentences[:-1000], target_sentences[-1000:], target_sentences[-1000:]
 
 with open("train.src", "w", encoding="utf-8") as src_f, \
     open("train.dst", "w", encoding="utf-8") as dst_f:

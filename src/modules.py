@@ -281,7 +281,6 @@ def positional_encoding(inputs,
     E = inputs.get_shape().as_list()[-1]  # static
     N, T = tf.shape(inputs)[0], tf.shape(inputs)[1]  # dynamic
     with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-
         # embedding indices
         enc_dim_range = tf.expand_dims(tf.range(E), 0)
 
@@ -294,7 +293,7 @@ def positional_encoding(inputs,
 
         # Second part, apply the cosine to even columns and sin to odds.
         position_enc = tf.where(tf.equal(tf.tile(enc_dim_range, [T, 1]) % 2, 0),
-                                 tf.sin(position_enc), tf.cos(position_enc))
+                                tf.sin(position_enc), tf.cos(position_enc))
 
         outputs = tf.tile(tf.expand_dims(position_enc, 0), [N, 1, 1])
 
