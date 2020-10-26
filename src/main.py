@@ -144,6 +144,7 @@ def train(hp):
         _gs = sess.run(model.global_step)
 
         k = 5
+        min_dev_loss = 0
         stop_alpha = 20.0
         eval_losses = []
         # Start training
@@ -189,12 +190,12 @@ def train(hp):
                 logging.info("After training of {} epochs, {} has been saved.".format(epoch, ckpt_name))
 
                 # claculate early stop
-                eval_losses.append(mean_loss)
                 if len(eval_losses) == 0:
                     min_dev_loss = mean_loss
-                gl, p_k, pq_alpha = calculate_earlystop_baseline(mean_loss, min_dev_loss, losses, k)
+                eval_losses.append(mean_loss)
+                gl, p_k, pq_alpha = calculate_earlystop_baseline(mean_loss, min_dev_loss, eval_losses, k)
                 min_dev_loss = mean_loss if mean_loss < min_dev_loss else min_dev_loss
-                losses = losses[-k:]
+                eval_losses = eval_losses[-k:]
                 logging.info("GL(t): {:.4f}, P_k: {:.4f}, PQ_alpha: {:.4f}".format(gl, p_k, pq_alpha))
                 if gl > stop_alpha:
                     logging.info("No optimization for a long time, auto-stopping...")

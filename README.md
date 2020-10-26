@@ -57,10 +57,10 @@ python src/main.py --mode version
 
 `--ckpt`为模型保存的文件夹路径
 
-> 需要下载预训练模型[请点击链接](https://pan.baidu.com/s/1fjVMbSDtTqgWYVhBdiRBWQ) (提取码: nv7v)
+> 需要下载预训练模型[请点击链接](https://pan.baidu.com/s/1eGal2InFkCkP7Jdqd3KY3Q) (提取码: 4vhj)
 
 ```shell script
-python src/main.py --mode test --ckpt=checkpoints/v1.0.0
+python src/main.py --mode test --ckpt=checkpoints/v1.1.0
 ```
 
 #### 重新训练
@@ -99,7 +99,7 @@ python src/main.py  --mode train \
 - 测试
 
 ```
-python src/main.py --mode test --ckpt=checkpoints/v1.0.0
+python src/main.py --mode test --ckpt=checkpoints/v1.1.0
 ```
 
 ## 模型API服务部署
