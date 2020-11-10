@@ -57,10 +57,10 @@ python src/main.py --mode version
 
 `--ckpt`为模型保存的文件夹路径
 
-> 需要下载预训练模型[请点击链接](https://pan.baidu.com/s/1eGal2InFkCkP7Jdqd3KY3Q) (提取码: 4vhj)
+> 需要下载预训练模型[请点击链接](https://pan.baidu.com/s/17drQAGy2Ddu5DSjPW7JUGw) (提取码: nizc)
 
 ```shell script
-python src/main.py --mode test --ckpt=checkpoints/v1.1.0
+python src/main.py --mode test --ckpt=checkpoints/v1.1.1
 ```
 
 #### 重新训练
@@ -99,7 +99,7 @@ python src/main.py  --mode train \
 - 测试
 
 ```
-python src/main.py --mode test --ckpt=checkpoints/v1.1.0
+python src/main.py --mode test --ckpt=checkpoints/v1.1.1
 ```
 
 ## 模型API服务部署
@@ -112,9 +112,9 @@ python src/main.py --mode test --ckpt=checkpoints/v1.1.0
 
 v1.1版本：[下载](https://github.com/Scagin/Classical2Modern/releases/download/v1.1.0/Classical2Modern_release_1.1.0.zip)
 
-#### 发布版本
+#### 部署release版本
 
-已发布`v1.1.0`版本，仅支持`amd64` 操作系统构架。
+已发布`v1.1.1`版本，仅支持`amd64` 操作系统构架。
 
 支持以下操作系统：
 
@@ -125,12 +125,21 @@ v1.1版本：[下载](https://github.com/Scagin/Classical2Modern/releases/downlo
 4. FreeBSD
 ```
 
+- 部署服务
+
+```
+wget https://github.com/Scagin/Classical2Modern/releases/download/v1.1.1/Classical2Modern_release_1.1.1.zip
+unzip Classical2Modern_release_1.1.1.zip
+cd Classical2Modern_release_1.1.1
+```
+
 - 启动服务
 
 Linux
 ```
 chmod +x ./bin/start.sh ./bin/classical2modern
-./bin/start.sh -port 9391 -max_length 120 -vocab_path ./data/vocab_char.txt -model_path ./mymodel
+cd bin
+./start.sh -port 9391 -max_length 120 -vocab_path ../data/vocab_char.txt -model_path ../mymodel
 ```
 
 `port` API 服务监听端口
@@ -147,22 +156,22 @@ chmod +x ./bin/start.sh ./bin/classical2modern
 tail -f logs/api_server.log
 ```
 
-#### 源码编译
+#### 从源码编译
 
 你需要
 1. 配置 `Go` 运行环境
 
-2. 安装好`tensorflow`的 `C` 和 `Go` API 依赖
+2. 安装`tensorflow`的 `C` 和 `Go` API 依赖
 
-3. 下载[预训练模型](https://pan.baidu.com/s/1eGal2InFkCkP7Jdqd3KY3Q) (提取码: 4vhj)
+3. 下载[预训练模型](https://pan.baidu.com/s/17drQAGy2Ddu5DSjPW7JUGw) (提取码: nizc)
 
-4. 并执行`python src/main.py --mode export --ckpt v1.0.0`命令导出模型
+4. 并执行`python src/main.py --mode export --ckpt v1.0.1`命令导出模型
 
 5. 执行 `cd api_server & go build -o ../bin/classical2modern_api`
 
 6. 启动服务
 ```
-./classical2modern  -port 9391 -max_length 120 -vocab_path ./data/vocab_char.txt -model_path ./mymodel
+./classical2modern  -port 9391 -max_length 120 -vocab_path ../data/vocab_char.txt -model_path ../mymodel
 ```
 
 ## 协议
