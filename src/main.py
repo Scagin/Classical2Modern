@@ -157,7 +157,7 @@ def train(hp):
             summary_writer.add_summary(_summary, _gs)
 
             # Evaluation
-            if _gs and _gs % (num_train_batches * 10) == 0:
+            if _gs and _gs % num_train_batches == 0:
                 logging.info("Epoch {} is done".format(epoch))
                 _loss = sess.run(model.loss,
                                  feed_dict={model.input_x: _input_x, model.decoder_input: _decoder_input,
